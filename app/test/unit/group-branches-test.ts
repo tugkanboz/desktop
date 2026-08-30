@@ -29,22 +29,39 @@ describe('Branches grouping', () => {
   const recentBranches = [
     new Branch('some-recent-branch', null, branchTip, BranchType.Local, ''),
   ]
-  const otherBranch = new Branch(
-    'other-branch',
+  const olderBranch = new Branch(
+    'older-branch',
     null,
-    branchTip,
+    { sha: 'older-branch', author },
+    BranchType.Local,
+    ''
+  )
+  const newerBranch = new Branch(
+    'newer-branch',
+    null,
+    { sha: 'newer-branch', author },
     BranchType.Local,
     ''
   )
 
-  const allBranches = [currentBranch, ...recentBranches, otherBranch]
+  const allBranches = [
+    currentBranch,
+    ...recentBranches,
+    newerBranch,
+    olderBranch,
+  ]
 
   it('should group branches', () => {
+    const commitAuthorDates = new Map<string, Date>([
+      ['older-branch', new Date('2025-01-01T00:00:00Z')],
+      ['newer-branch', new Date('2026-01-01T00:00:00Z')],
+    ])
     const groups = groupBranches(
       defaultBranch,
       currentBranch,
       allBranches,
-      recentBranches
+      recentBranches,
+      commitAuthorDates
     )
     assert.equal(groups.length, 3)
 
@@ -58,6 +75,7 @@ describe('Branches grouping', () => {
 
     assert.equal(groups[2].identifier, 'other')
     items = groups[2].items
-    assert.equal(items[0].branch, otherBranch)
+    assert.equal(items[0].branch, newerBranch)
+    assert.equal(items[1].branch, olderBranch)
   })
 })
